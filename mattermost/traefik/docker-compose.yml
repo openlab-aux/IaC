@@ -1,0 +1,66 @@
+version: "3.3"
+
+services:
+  traefik:
+    image: "traefik:v2.8"
+    container_name: "traefik"
+    restart: unless-stopped
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.dashboard=true"
+      - "--providers.file.directory=/configs"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=web"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.middlewares=https_redirect@docker"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.middlewares=https_config@docker,www-redirect@docker"
+      - "--entrypoints.websecure.http.tls.options=default"
+      - "--entrypoints.websecure.http.tls.certresolver=myresolver"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=[FILL ME]"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+
+      traefik.enable: true
+      traefik.http.routers.http_catchall.rule: HostRegexp(`{any:.+}`)
+      traefik.http.routers.http_catchall.entrypoints: web
+      traefik.http.routers.http_catchall.middlewares: https_config
+
+      # https redirect
+      traefik.http.middlewares.https_config.headers.stsSeconds: 63072000
+      traefik.http.middlewares.https_config.headers.stsIncludeSubdomains: true
+
+      # https redirect
+      traefik.http.middlewares.https_redirect.redirectscheme.scheme: "https"
+      traefik.http.middlewares.https_redirect.redirectscheme.permanent: true
+
+      # www -> non-www
+      traefik.http.middlewares.www-redirect.redirectregex.regex: "^https://www.(.*)"
+      traefik.http.middlewares.www-redirect.redirectregex.replacement: "https://$${1}"
+      traefik.http.middlewares.www-redirect.redirectregex.permanent: true
+
+      # basic-auth
+      # Note: when used in docker-compose.yml all dollar signs in the hash need to be doubled for escaping.
+      # echo $(htpasswd -nb user password) | sed -e s/\\$/\\$\\$/g
+      traefik.http.middlewares.dev-auth.basicauth.users: "[FILL ME]"
+
+    networks:
+      - web
+      - default
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "./configs:/configs"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+networks:
+  web:
+    external: true
+  default:
+    driver: bridge

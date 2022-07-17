@@ -1,0 +1,20 @@
+version: "2.1"
+
+services:
+  matterircd:
+    #image: 42wim/matterircd:latest
+    image: fribbledom/matterircd:latest
+    command: -conf /config/matterircd.toml
+    restart: unless-stopped
+    networks:
+      - default
+      - web
+    ports:
+      - 9997:9997
+    volumes:
+      - ./keys:/keys
+      - ./matterircd.toml:/config/matterircd.toml
+
+networks:
+  web:
+    external: true

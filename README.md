@@ -1,2 +1,3 @@
 # IaC
-Infrastructure as Code for OpenLab infrastructure
+Infrastructure as Code für das OpenLab. 
+Details sind im [Wiki](https://wiki.openlab-augsburg.de/Infrastruktur) zu finden.

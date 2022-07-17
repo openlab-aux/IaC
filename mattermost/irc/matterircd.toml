@@ -1,0 +1,97 @@
+#interface:port to bind to. (default "127.0.0.1:6667")
+#Bind = "0.0.0.0:9997"
+
+#enable debug logging (default false)
+Debug = false
+
+#interface:port to bind to. (e.g 127.0.0.1:6697) (deault "")
+TLSBind = "0.0.0.0:9997"
+
+#directory to look for key.pem and cert.pem. (default ".")
+TLSDir = "/keys/"
+
+#PasteBufferTimeout specifies the amount of time in milliseconds that
+#messages get kept in matterircd internal buffer before being sent to
+#mattermost or slack.
+#Messageis that will be received in this time will be concatenated together
+#So this can be used to paste stuff like ansi-art or code.
+#Default 0 (is disabled)
+#Depending on how fast you type 2500 is a good number
+PasteBufferTimeout = 2500
+
+##################################
+##### MATTERMOST EXAMPLE #########
+##################################
+[mattermost]
+#specify default mattermost server/instance (default "")
+DefaultServer = "chat.openlab-augsburg.de"
+
+#specify default mattermost team (default "")
+#DefaultTeam = "mycompany"
+
+#use http connection to mattermost (default false)
+Insecure = false
+
+#an array of channels that only will be joined on IRC.
+#If it's empty, it means all channels get joined (except those defined in JoinExclude)
+#Messages that get sent to unjoined channels (but you're joined on mattermost) will
+#get sent to the &messages channel.
+#default ""
+#JoinInclude = ["#devops"]
+
+#an array of channels that won't be joined on IRC.
+#Messages that get sent to unjoined channels (but you're joined on mattermost) will
+#get sent to the &messages channel.
+#You can still /JOIN exclude channels.
+#default ""
+#JoinExclude = ["#town-square","#boringchannel"]
+
+#PartFake: a bool that defines if you do a /LEAVE or /PART on IRC it will also
+#actually leave the channel on mattermost.
+#if false it actually leaves the channel on mattermost
+#if true it removes the channel from irc, but you're still joined on mattermost, messages
+#of this channel will be sent to &messages channel
+#Default false
+PartFake = true
+
+#only allow connection to specified mattermost server/instances. 
+#Array, default empty
+Restrict = ["chat.openlab-augsburg.de", "65.108.51.139"]
+
+#skip verification of mattermost certificate chain and hostname (default false)
+SkipTLSVerify = false
+
+#also add the main team prefix to the channel name #team/channel (default false)
+PrefixMainTeam = false
+
+#Only mark a conversation as viewed when you reply to that conversation or
+#channel. This prevents Mattermost from clearing mobile app notifications
+#instantly. Note that this prevents you from always appearing as online
+#(anti-idle support is turned off) (default false)
+DisableAutoView = true
+
+#############################
+##### SLACK EXAMPLE #########
+#############################
+#[slack]
+#Blacklist specific users from connecting.
+#As we only connect using tokens, this will first do a ccnnection to see what username the token is from. If this
+#username is on the blacklist the user will be disconnected.
+#Array, default empty 
+#BlackListUser = ["username"]
+
+#https://get.slack.help/hc/en-us/articles/212281468-Direct-messages-and-group-DMs
+#Only join multiple person Direct messages when someone talks. This stops from cluttering your 
+#irc client with lots of windows.
+#JoinMpImOnTalk = false
+
+#only allow connection to specific slack sites. (eg for myslack.slack.com just specify myslack)
+#As we only connect using tokens, this will first do a ccnnection to see what team the token is from. If this
+#team isn't in the Restrict list, the user will be disconnected.
+#Array, default empty 
+#Restrict = ["myslack"]
+
+# This will add the slack DisplayName as prefix to every message if the DisplayName differs from the Username
+# More info about username/displayname see https://api.slack.com/changelog/2017-09-the-one-about-usernames
+# Default false
+#UseDisplayName = false

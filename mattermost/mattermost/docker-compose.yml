@@ -1,0 +1,69 @@
+version: "3"
+
+services:
+
+  db:
+    image: docker.io/library/postgres:14.4
+    read_only: false
+    restart: unless-stopped
+    volumes:
+      - ./volumes/db/var/lib/postgresql/data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - POSTGRES_USER=mmuser
+      - POSTGRES_PASSWORD=[FILL ME]
+      - POSTGRES_DB=mattermost
+
+  app:
+    depends_on:
+      - db 
+    image: mattermost/mattermost-team-edition:7.1.1
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 200
+    read_only: false
+    tmpfs:
+      - /tmp
+    volumes:
+      - ./volumes/app/mattermost/config:/mattermost/config:rw
+      - ./volumes/app/mattermost/data:/mattermost/data:rw
+      - ./volumes/app/mattermost/logs:/mattermost/logs:rw
+      - ./volumes/app/mattermost/plugins:/mattermost/plugins:rw
+      - ./volumes/app/mattermost/client-plugins:/mattermost/client/plugins:rw
+      - ./volumes/app/mattermost/blebe-indexes:/mattermost/bleve-indexes:rw
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      TZ: Europe/Berlin
+
+      # necessary Mattermost options/variables (see env.example)
+      MM_SQLSETTINGS_DRIVERNAME: [FILL ME]
+      MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:[FILL ME]@db:5432/mattermost?sslmode=disable&connect_timeout=10
+
+      # necessary for bleve
+      MM_BLEVESETTINGS_INDEXDIR: /mattermost/bleve-indexes
+
+      # additional settings
+      MM_SERVICESETTINGS_SITEURL: https://chat.openlab-augsburg.de
+
+  web:
+    build: web
+    read_only: true
+    restart: unless-stopped
+    networks:
+      - default
+      - web
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      traefik.enable: true
+      traefik.http.routers.mmopenlab.rule: Host(`chat.openlab-augsburg.de`)
+      # uncomment to use http basic auth for maintenance
+      # traefik.http.routers.mmopenlab.middlewares: "dev-auth"
+      traefik.http.routers.mmopenlab.service: mmopenlab-mattermost
+      traefik.http.routers.mmopenlab.entrypoints: websecure
+      traefik.http.services.mmopenlab-mattermost.loadbalancer.server.port: 80
+
+networks:
+  web:
+    external: true
